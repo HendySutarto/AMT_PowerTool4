@@ -241,8 +241,7 @@ extern  string      Header1                   =
 extern  ENUM_TRADING_MODE
                     TradeMode                 = TM_LONG  ;
 
-extern  ENUM_STRATEGY_CHOICES
-
+extern  ENUM_STRATEGY_TREND
                     Strategy_Trend            = STRATEGY_MEDIUMTREND_WEEKLY_LARGE_RANGE ;
 
 
@@ -4272,7 +4271,7 @@ void OnTick()
         //-- as the first tick of W1
 
         // Flag the position at high profit
-        if( OrderP1ProfitPips >= ThresholdProfitPips_HighThresh) )
+        if( OrderP1ProfitPips >= ThresholdProfitPips_HighThresh) 
             TradeFlag_ProfitThresholdPassed = true ;
         //-- The flag is reset on entering a new position
         //-- DONE
