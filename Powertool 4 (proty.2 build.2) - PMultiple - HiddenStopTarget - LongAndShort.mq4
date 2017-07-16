@@ -2877,6 +2877,14 @@ void OnTick()
                         " OrderCloseTime():",   OrderCloseTime() ,
                         " OrderProfit(): " ,    DoubleToString(OrderProfit() , 2)
                         );
+                        
+                  // LOGIC #2 When Position #1 hits PROFIT TARGET 
+                  // Tag for Large Profit
+                  if  (iPos == 1)
+                  {
+                    TradeFlag_ClosedOnBigProfit = true ;
+                    Print("[OnTick]: HIDDEN TARGET PROFIT with TradeFlag_ClosedOnBigProfit = true" );
+                  }
 
                 } // End of OrderClose()
 
@@ -2911,6 +2919,14 @@ void OnTick()
                         " OrderCloseTime():",   OrderCloseTime() ,
                         " OrderProfit(): " ,    DoubleToString(OrderProfit() , 2)
                         );
+
+                  // LOGIC #2 When Position #1 hits PROFIT TARGET 
+                  // Tag for Large Profit
+                  if  (iPos == 1)
+                  {
+                    TradeFlag_ClosedOnBigProfit = true ;
+                    Print("[OnTick]: HIDDEN TARGET PROFIT with TradeFlag_ClosedOnBigProfit = true" );
+                  }                        
 
                 } // End of OrderClose()
 
@@ -3168,6 +3184,11 @@ void OnTick()
     //-- PREVENT NEW ENTRY IF BIG PROFIT HAS BEEN ACHIEVED
     //-- BIG PROFIT IS "LEG OF THE YEAR"; YOU WAIT UNTIL NEXT YEAR
     //-- OR YOU DISCOVER A STRONG WEEKLY "V" or "A" PATTERN OCCURS IN THE SAME YEAR
+    
+    //-- BIG PROFIT LOGIC
+    //-- On CLOSED ORDERs:
+      // LOGIC #1 - When orderProfitPips get larger than 0.75 * Percentile75 of target price
+      // LOGIC #2 - When profit target is met = large profit.
 
     if( IsFirstTick_HTF )
     {
@@ -3254,9 +3275,11 @@ void OnTick()
                   Print("[OnTick]:"
                         " Ticket: #" , OrderTicket() ,
                         " OrderProfitPips: " , DoubleToStr( orderProfitPips ,0)  , "."
-                        " This is CHECK on [for (int i=totalHistoryOrders-1 ; i>=0 ; i--)], i #" , i
+                        " This is CHECK on [for (int i=totalHistoryOrders-1 ; i>=0 ; i--)], i #" , i              
                         );
-
+              
+              
+              // LOGIC #1 - When orderProfitPips get larger than 0.75 * Percentile75 of target price
               if ( orderProfitPips >= 0.75 * SymbolBasedTargetPrice75Pct( Symbol() ) )
               //-- TO DO
               //-- Need symbol-based function that return high profit for closed trade
