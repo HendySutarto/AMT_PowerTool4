@@ -3289,6 +3289,10 @@ void OnTick()
                 TradeFlag_ClosedOnBigProfit = true ;
                 break;
               }
+              
+              // NOTE THE  LOGIC #2 - When profit target is met = large profit 
+              // is for STRATEGY_MEDIUMTREND_WEEKLY_LARGE_RANGE
+              // See "2. MONITOR TARGET" for Implementation
           }
 
     }
@@ -4342,7 +4346,10 @@ void OnTick()
               , " MACDH W1 [2]: "       , DoubleToString(macd_TTF_exit_hist_X , 4)
               , " exitBuy: "            , BoolToStr( exitBuy )
             );
-      }
+            
+      }   // End of  if( res == true
+          //              && ( _orderType==OP_BUY || _orderType==OP_SELL )
+          //              &&  OrderCloseTime() == 0 )
 
 
 
