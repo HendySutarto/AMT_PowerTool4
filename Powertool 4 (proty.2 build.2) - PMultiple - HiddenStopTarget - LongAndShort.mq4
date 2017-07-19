@@ -4401,7 +4401,7 @@ void OnTick()
 
 
     /*-----------------------------------------------------------------------------------*/
-    /****** EXECUTION - EXIT BUY ******/
+    /****** EXECUTION - EXIT BUY - STRATEGY_LONGTREND_LEG_OF_THE_YEAR ******/
     /*-----------------------------------------------------------------------------------*/
 
     if( Strategy_Trend == STRATEGY_LONGTREND_LEG_OF_THE_YEAR )
@@ -4448,7 +4448,7 @@ void OnTick()
 
 
     /*-----------------------------------------------------------------------------------*/
-    /****** EXECUTION - EXIT SELL ******/
+    /****** EXECUTION - EXIT SELL - STRATEGY_LONGTREND_LEG_OF_THE_YEAR ******/
     /*-----------------------------------------------------------------------------------*/
 
     if( Strategy_Trend == STRATEGY_LONGTREND_LEG_OF_THE_YEAR )
@@ -4549,22 +4549,212 @@ void OnTick()
     bool exitBuy_SMT    = false ;   // _SMT = Strategy Medium Trend
     bool exitSell_SMT   = false ;   // _SMT = Strategy Medium Trend
 
-    if( IsFirstTick_HTF && Strategy_Trend == STRATEGY_MEDIUMTREND_WEEKLY_LARGE_RANGE )
+    if( IsFirstTick_LTF && Strategy_Trend == STRATEGY_MEDIUMTREND_WEEKLY_LARGE_RANGE )
     {
       
       // Profit pass 500 pips?
       
       // If yes, apply trailing stop
       
-        // Lowest low of 3 bar, taken its highest value, hence never fall back.
+        // Lowest low of 3 bar, taken its highest value, hence never fall back.        
+        // Draw trailing stop with "x-x" on M5        
+        // SEE LINE 3468 to 3477 for highest high 3 bar and lowest low 3 bars
         
-        // Draw trailing stop with "x-x" on M5
         
+
+        //-- Exit rule that I am comfortable with:
+        //-- after 500 pips profit on P1
+        //-- Use trailing stop of HTF 3 BARS
+        //-- This allows profit to grow toward profit target of medium trend, and prepare for fallback 
+        //-- to lock sizable profit on medium trend
+        
+        //-- The logic works on M5, NOT, on Closing D1       
+
+
+      //-- Calculate Order Profit in Pips on P1
+      int     ticket = FindTicket( MagicNumberTable( Symbol() , 1  ) );   // The 1 is for Position 1
+      bool    res             = OrderSelect( ticket , SELECT_BY_TICKET , MODE_TRADES );
+
+      //-- Assign once, use everywhere in the current bracket
+      int     _orderType      = OrderType() ;
+      double  _orderOpenPrice = OrderOpenPrice() ;
+
+      if( res == true
+        && ( _orderType==OP_BUY || _orderType==OP_SELL )
+        &&  OrderCloseTime() == 0 )
+      {
+
+        double  OrderP1ProfitPrice ;
+        if(_orderType==OP_BUY)
+        {
+          OrderP1ProfitPrice = Close[1] - _orderOpenPrice ;
+        }
+        else if(_orderType==OP_SELL)
+        {
+          OrderP1ProfitPrice = _orderOpenPrice - Close[1] ;
+        }
+        else
+        {
+          Print("[OnTick]" ,
+                " *** WARNING: OrderType() is NOT OP_BUY NOR OP_SELL !!!"
+              );
+        }
+
+
+        double  OrderP1ProfitPips   = OrderP1ProfitPrice / (Point * PointToPrice);
+
+        //-- Note, Close[1] is the last close of M5 - the lowest time frame,
+        //-- that also happens as the close of W1, because this tick is happening
+        //-- as the first tick of W1
+
+        // Flag the position if P1 pass the ThresholdProfitPips_LowThresh 
+        // (I started with 500 pips for this value in the OnInit )
+        
+        if( OrderP1ProfitPips >= ThresholdProfitPips_LowThresh ) 
+            TradeFlag_ProfitThresholdPassed = true ;
+        //-- The flag is reset on entering a new position
+        //-- DONE
+        //-- Need symbol-based function for this function
+
+
+        if( _orderType==OP_BUY )
+        {
+          exitBuy = ( Close[1] < lowestLow_HTF_3bars );
+        }
+        else if(_orderType==OP_SELL)
+        {
+          exitSell = ( Close[1] > highestHigh_HTF_3bars );
+        }
+        else
+            {
+              Print("[OnTick]" ,
+                    " *** WARNING: OrderType() is NOT OP_BUY NOR OP_SELL !!!"
+                  );
+            }
+
+
+        //*****************//
+        //*** DEBUGGING ***//
+        //*****************//
+        Print(
+                "[OnTick]: "
+              , "*** WEEKLY BAR ***"
+              , " Close[1]: "           , DoubleToString(Close[1] , 2)
+              , " OrderOpenPrice: "     , DoubleToString(OrderOpenPrice() , 2  )
+              , " Ticket P1: "          , IntegerToString(ticket)
+              , " OrderP1ProfitPrice: " , DoubleToString(OrderP1ProfitPrice , 4)
+              , " OrderP1ProfitPips: "  , DoubleToString(OrderP1ProfitPips , 1)
+              , " Lowest Low 3 bars: "  , DoubleToString(lowestLow_HTF_3bars , 4)
+              , " Highest High 3 bars: ", DoubleToString(highestHigh_HTF_3bars , 4)
+              , " exitBuy: "            , BoolToStr( exitBuy )
+              , " exitSell: "           , BoolToStr( exitSell )
+            );
+            
+      }   // End of  if( res == true
+          //              && ( _orderType==OP_BUY || _orderType==OP_SELL )
+          //              &&  OrderCloseTime() == 0 )
       
       
+    } // End of if( IsFirstTick_LTF && Strategy_Trend == STRATEGY_MEDIUMTREND_WEEKLY_LARGE_RANGE )
+
+
+
+
       
-      
-    } // End of if( IsFirstTick_HTF && Strategy_Trend == STRATEGY_MEDIUMTREND_WEEKLY_LARGE_RANGE )
+    /*-----------------------------------------------------------------------------------*/
+    /****** EXECUTION - EXIT BUY - STRATEGY_MEDIUMTREND_WEEKLY_LARGE_RANGE ******/
+    /*-----------------------------------------------------------------------------------*/
+
+    if( Strategy_Trend == STRATEGY_MEDIUMTREND_WEEKLY_LARGE_RANGE )
+      if( IsFirstTick_LTF && exitBuy && TradeMode == TM_LONG  )
+      {
+
+        //*****************//
+        //*** DEBUGGING ***//
+        //*****************//
+          Print(
+
+            "[OnTick] ======== EXIT BUY MEDIUM TREND ===== " 
+             //,
+             //"MACDH TTF(18,36,18)[1]: "  , DoubleToString( macd_TTF_exit_hist_1 , 5) , " / " ,
+             //"MACDH TTF(18,36,18)[2]: "  , DoubleToString( macd_TTF_exit_hist_X , 5)
+            );
+
+
+        //-- The closing should be "CLOSE ALL OPEN POSITION"
+        //-- The logic below is still from older logic that close first position only
+        //-- I want simpler logic to close **all open position**
+
+        EXIT_ALL_POSITIONS(
+            closedByTechnicalAnalysis   ,
+            comment_exit
+            );
+
+        if( closedByTechnicalAnalysis==true )
+        {
+
+          TradeFlag_ClosedOnBigProfit = true;
+          //-- Set flag for Closed on big profit = true
+          //-- No more entries after this.
+
+          Print( "" );
+          Print( "[OnTick]: ****** ALL POSITIONS HAVE BEEN CLOSED IN HIGH PROFIT ***" );
+          Print( "[OnTick]: ****** NO MORE TRADE ENTRY AFTER THIS ***" );
+          Print( "" );
+        }
+
+      }
+
+
+
+
+
+    /*-----------------------------------------------------------------------------------*/
+    /****** EXECUTION - EXIT SELL - STRATEGY_MEDIUMTREND_WEEKLY_LARGE_RANGE ******/
+    /*-----------------------------------------------------------------------------------*/
+
+    if( Strategy_Trend == STRATEGY_MEDIUMTREND_WEEKLY_LARGE_RANGE )
+      if( IsFirstTick_LTF &&  exitSell &&  TradeMode == TM_SHORT )
+      {
+
+        //*****************//
+        //*** DEBUGGING ***//
+        //*****************//
+          Print(
+
+            "[OnTick] ======== EXIT SELL MEDIUM TREND ===== " 
+            //,
+            // "MACDH TTF(18,36,18)[1]: "  , DoubleToString( macd_TTF_exit_hist_1 , 5) , " / " ,
+            // "MACDH TTF(18,36,18)[2]: "  , DoubleToString( macd_TTF_exit_hist_X , 5)
+            );
+
+
+        //-- The closing should be "CLOSE ALL OPEN POSITION"
+        //-- The logic below is still from older logic that close first position only
+        //-- I want simpler logic to close **all open position**
+
+        EXIT_ALL_POSITIONS(
+            closedByTechnicalAnalysis   ,
+            comment_exit
+            );
+
+        if( closedByTechnicalAnalysis==true )
+        {
+
+          TradeFlag_ClosedOnBigProfit = true;
+          //-- Set flag for Closed on big profit = true
+          //-- No more entries after this.
+
+          Print( "" );
+          Print( "[OnTick]: ****** ALL POSITIONS HAVE BEEN CLOSED IN HIGH PROFIT ***" );
+          Print( "[OnTick]: ****** NO MORE TRADE ENTRY AFTER THIS ***" );
+          Print( "" );
+        }
+
+      }
+
+
+
 
 
 
