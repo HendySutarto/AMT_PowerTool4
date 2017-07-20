@@ -555,7 +555,7 @@ int OnInit()
 
   ThresholdProfitPips_Passed      = false ;
 
-  ThresholdProfitPips_LowThresh   = 500.0   ;   // 500 pips
+  ThresholdProfitPips_LowThresh   = 800.0   ;   // 800 pips
   ThresholdProfitPips_HighThresh  = SymbolBasedTargetPrice75Pct( Symbol() ) ;
 
   Print("") ;
@@ -3457,7 +3457,7 @@ void OnTick()
       macd_HTF_exit_hist_X = iCustom( NULL , PERIOD_HTF , "MACDH_OnCalc" ,
            18 , 39 , 18 ,
               2 , 2 ) ;
-      // Buffer = 2 / index = 2
+              // Buffer = 2 / index = 2
 
 
 
@@ -3465,18 +3465,21 @@ void OnTick()
       // PRICE CHANNEL
       // HIGHEST HIGH
       // ----------------------
-      int val_index_highest = iHighest( NULL , PERIOD_HTF , MODE_HIGH , 3 , 1 ) ;
-      highestHigh_HTF_3bars = High[ val_index_highest ] ;
+      // int val_index_highest = iHighest( NULL , PERIOD_HTF , MODE_HIGH , 3 , 1 ) ;
+      // highestHigh_HTF_3bars = High[ val_index_highest ] ;
 
-
-
+      highestHigh_HTF_3bars = iCustom( NULL , PERIOD_HTF , "PChannel" , 3 , 
+            0 , 1  );
+            // Buffer = 0 / index = 1
       //
       // LOWEST LOW
       // ----------------------
-      int val_index_lowest  = iLowest( NULL , PERIOD_HTF , MODE_LOW , 3 , 1  );
-      lowestLow_HTF_3bars   = Low[ val_index_lowest ];
-
-
+      // int val_index_lowest  = iLowest( NULL , PERIOD_HTF , MODE_LOW , 3 , 1  );
+      // lowestLow_HTF_3bars   = Low[ val_index_lowest ];
+      
+      lowestLow_HTF_3bars = iCustom(  NULL , PERIOD_HTF , "PChannel" , 3 , 
+            1 , 1);
+            // Buffer = 1 / index = 1
 
 
     }   // End of if( IsFirstTick_HTF )
@@ -4595,7 +4598,7 @@ void OnTick()
         }
         else
         {
-          Print("[OnTick]" ,
+          Print("[OnTick] - STRATEGY_MEDIUMTREND_WEEKLY_LARGE_RANGE" ,
                 " *** WARNING: OrderType() is NOT OP_BUY NOR OP_SELL !!!"
               );
         }
@@ -4604,33 +4607,43 @@ void OnTick()
         double  OrderP1ProfitPips   = OrderP1ProfitPrice / (Point * PointToPrice);
 
         //-- Note, Close[1] is the last close of M5 - the lowest time frame,
-        //-- that also happens as the close of W1, because this tick is happening
-        //-- as the first tick of W1
 
         // Flag the position if P1 pass the ThresholdProfitPips_LowThresh 
         // (I started with 500 pips for this value in the OnInit )
         
         if( OrderP1ProfitPips >= ThresholdProfitPips_LowThresh ) 
             TradeFlag_ProfitThresholdPassed = true ;
-        //-- The flag is reset on entering a new position
-        //-- DONE
-        //-- Need symbol-based function for this function
 
-
+        
         if( _orderType==OP_BUY )
         {
-          exitBuy = ( Close[1] < lowestLow_HTF_3bars );
+          exitBuy = (                    
+                    ( Close[1] < lowestLow_HTF_3bars )
+                &&  TradeFlag_ProfitThresholdPassed
+                  );
+          // TIPS: Good practice
+          // That TradeFlag_ProfitThresholdPassed is included into the formula for logic, 
+          // because TradeFlag_ProfitThresholdPassed is part of exit criteria.
         }
-        else if(_orderType==OP_SELL)
+        else if(  _orderType==OP_SELL  )
         {
-          exitSell = ( Close[1] > highestHigh_HTF_3bars );
+          exitSell = (
+                      ( Close[1] > highestHigh_HTF_3bars )
+                &&  TradeFlag_ProfitThresholdPassed
+                );
+          // TIPS: Good practice
+          // That TradeFlag_ProfitThresholdPassed is included into the formula for logic, 
+          // because TradeFlag_ProfitThresholdPassed is part of exit criteria.
+          
         }
         else
             {
-              Print("[OnTick]" ,
+              Print("[OnTick] - EXIT FOR MEDIUM TREND" ,
                     " *** WARNING: OrderType() is NOT OP_BUY NOR OP_SELL !!!"
                   );
-            }
+            }      
+        
+
 
 
         //*****************//
@@ -4638,7 +4651,7 @@ void OnTick()
         //*****************//
         Print(
                 "[OnTick]: "
-              , "*** WEEKLY BAR ***"
+              , "*** MEDIUM TREND ***"
               , " Close[1]: "           , DoubleToString(Close[1] , 2)
               , " OrderOpenPrice: "     , DoubleToString(OrderOpenPrice() , 2  )
               , " Ticket P1: "          , IntegerToString(ticket)
@@ -4698,8 +4711,8 @@ void OnTick()
           //-- No more entries after this.
 
           Print( "" );
-          Print( "[OnTick]: ****** ALL POSITIONS HAVE BEEN CLOSED IN HIGH PROFIT ***" );
-          Print( "[OnTick]: ****** NO MORE TRADE ENTRY AFTER THIS ***" );
+          Print( "[OnTick]: MEDIUM TREND EXIT ****** ALL POSITIONS HAVE BEEN CLOSED IN HIGH PROFIT ***" );
+          Print( "[OnTick]: MEDIUM TREND EXIT ****** NO MORE TRADE ENTRY AFTER THIS ***" );
           Print( "" );
         }
 
@@ -4746,8 +4759,8 @@ void OnTick()
           //-- No more entries after this.
 
           Print( "" );
-          Print( "[OnTick]: ****** ALL POSITIONS HAVE BEEN CLOSED IN HIGH PROFIT ***" );
-          Print( "[OnTick]: ****** NO MORE TRADE ENTRY AFTER THIS ***" );
+          Print( "[OnTick]: MEDIUM TREND EXIT ****** ALL POSITIONS HAVE BEEN CLOSED IN HIGH PROFIT ***" );
+          Print( "[OnTick]: MEDIUM TREND EXIT ****** NO MORE TRADE ENTRY AFTER THIS ***" );
           Print( "" );
         }
 
