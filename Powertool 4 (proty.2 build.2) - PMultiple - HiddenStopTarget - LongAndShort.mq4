@@ -4646,22 +4646,25 @@ void OnTick()
 
 
 
-        //*****************//
-        //*** DEBUGGING ***//
-        //*****************//
-        Print(
-                "[OnTick]: "
-              , "*** MEDIUM TREND ***"
-              , " Close[1]: "           , DoubleToString(Close[1] , 2)
-              , " OrderOpenPrice: "     , DoubleToString(OrderOpenPrice() , 2  )
-              , " Ticket P1: "          , IntegerToString(ticket)
-              , " OrderP1ProfitPrice: " , DoubleToString(OrderP1ProfitPrice , 4)
-              , " OrderP1ProfitPips: "  , DoubleToString(OrderP1ProfitPips , 1)
-              , " Lowest Low 3 bars: "  , DoubleToString(lowestLow_HTF_3bars , 4)
-              , " Highest High 3 bars: ", DoubleToString(highestHigh_HTF_3bars , 4)
-              , " exitBuy: "            , BoolToStr( exitBuy )
-              , " exitSell: "           , BoolToStr( exitSell )
-            );
+            //*****************//
+            //*** DEBUGGING ***//
+            //*****************//
+            if ( ThresholdProfitPips_LowThresh )
+            {
+                Print(
+                        "[OnTick]: "
+                      , "*** MEDIUM TREND ***"
+                      , " Close[1]: "           , DoubleToString(Close[1] , 2)
+                      , " OrderOpenPrice: "     , DoubleToString(OrderOpenPrice() , 2  )
+                      , " Ticket P1: "          , IntegerToString(ticket)
+                      //, " OrderP1ProfitPrice: " , DoubleToString(OrderP1ProfitPrice , 4)
+                      , " OrderP1ProfitPips: "  , DoubleToString(OrderP1ProfitPips , 1)
+                      , " Lowest Low 3 bars: "  , DoubleToString(lowestLow_HTF_3bars , 4)
+                      , " Highest High 3 bars: ", DoubleToString(highestHigh_HTF_3bars , 4)
+                      , " exitBuy: "            , BoolToStr( exitBuy )
+                      , " exitSell: "           , BoolToStr( exitSell )
+                    );
+            }
             
       }   // End of  if( res == true
           //              && ( _orderType==OP_BUY || _orderType==OP_SELL )
