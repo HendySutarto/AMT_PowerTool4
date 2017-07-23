@@ -255,8 +255,8 @@ extern  double      TargetPriceMediumTrend    = 106.52 ;
 
 extern  string      Header1b                  =
                                         "- Base Price Where Range Starts or Leg Of The Year Starts -" ;
-extern  double      BasePrice                 = 86.12 ;
-// You set the BasePrice using Support / Resistance that defines
+extern  double      BasePriceLongTrend                 = 86.12 ;
+// You set the BasePriceLongTrend using Support / Resistance that defines
 // the base of Leg of the Year or the Large Weekly Range
 
 
@@ -509,7 +509,7 @@ int OnInit()
   {
     if( Strategy_Trend==STRATEGY_LONGTREND_LEG_OF_THE_YEAR )
     {
-      TargetPriceCommon = BasePrice + 1.20 * SymbolBasedTargetPrice75Pct( Symbol() ) ;
+      TargetPriceCommon = BasePriceLongTrend + 1.20 * SymbolBasedTargetPrice75Pct( Symbol() ) ;
     }
     else    // Strategy_Trend == STRATEGY_MEDIUMTREND_WEEKLY_LARGE_RANGE
     {
@@ -522,7 +522,7 @@ int OnInit()
 
     if( Strategy_Trend==STRATEGY_LONGTREND_LEG_OF_THE_YEAR )
     {
-      TargetPriceCommon = BasePrice - 1.20 * SymbolBasedTargetPrice75Pct( Symbol() ) ;
+      TargetPriceCommon = BasePriceLongTrend - 1.20 * SymbolBasedTargetPrice75Pct( Symbol() ) ;
     }
     else    // Strategy_Trend == STRATEGY_MEDIUMTREND_WEEKLY_LARGE_RANGE
     {
@@ -555,7 +555,7 @@ int OnInit()
 
   ThresholdProfitPips_Passed      = false ;
 
-  ThresholdProfitPips_LowThresh   = 800.0   ;   // 800 pips
+  ThresholdProfitPips_LowThresh   = 500.0   ;   // 800 pips
   ThresholdProfitPips_HighThresh  = SymbolBasedTargetPrice75Pct( Symbol() ) ;
 
   Print("") ;
