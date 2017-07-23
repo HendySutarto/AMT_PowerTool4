@@ -4649,7 +4649,7 @@ void OnTick()
             //*****************//
             //*** DEBUGGING ***//
             //*****************//
-            if ( ThresholdProfitPips_LowThresh )
+            if ( TradeFlag_ProfitThresholdPassed )
             {
                 Print(
                         "[OnTick]: "
