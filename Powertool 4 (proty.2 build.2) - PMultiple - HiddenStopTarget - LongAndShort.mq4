@@ -556,7 +556,7 @@ int OnInit()
   ThresholdProfitPips_Passed      = false ;
 
   ThresholdProfitPips_LowThresh   = 500.0   ;   // 800 pips
-  ThresholdProfitPips_HighThresh  = SymbolBasedTargetPrice75Pct( Symbol() ) ;
+  ThresholdProfitPips_HighThresh  = 0.75 * SymbolBasedTargetPrice75Pct( Symbol() ) ;
 
   Print("") ;
   Print("") ;
