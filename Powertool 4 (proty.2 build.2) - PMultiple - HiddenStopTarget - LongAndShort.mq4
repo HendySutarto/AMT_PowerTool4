@@ -4664,6 +4664,25 @@ void OnTick()
                       , " exitBuy: "            , BoolToStr( exitBuy )
                       , " exitSell: "           , BoolToStr( exitSell )
                     );
+                    
+                    
+                    // Mark LTF with HTF Setup
+                    if( _orderType == OP_BUY )
+                    {
+                      string  txtEXITmarker = "EXITBUYTRAIL_ " + TimeToStr(Time[0] , TIME_DATE|TIME_MINUTES ) ;
+                      ObjectCreate( txtEXITmarker , OBJ_TEXT , 0 , Time[0] , lowestLow_HTF_3bars );
+                      ObjectSetText( txtEXITmarker , "-" ,9 , "Consolas" , clrLawnGreen );                      
+                    }
+                    else if(  _orderType==OP_SELL  )
+                    {
+                      string  txtEXITmarker = "EXITSELLTRAIL_ " + TimeToStr(Time[0] , TIME_DATE|TIME_MINUTES ) ;
+                      ObjectCreate( txtEXITmarker , OBJ_TEXT , 0 , Time[0] , highestHigh_HTF_3bars );
+                      ObjectSetText( txtEXITmarker , "-" ,9 , "Consolas" , clrLawnGreen );                                          
+                    }
+                    
+
+                    
+                    
             }
             
       }   // End of  if( res == true
