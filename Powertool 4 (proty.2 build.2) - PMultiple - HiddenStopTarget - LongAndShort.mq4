@@ -2346,9 +2346,17 @@ double LotSize(
     else
       {
         double riskdoloverdist ;
-
-        riskdoloverdist = riskdollar / distance ;
-        lotsize = riskdoloverdist * (10/10000.0) ;    // 100 is leverage level
+        double distance_pips ;
+        
+        distance_pips = distance / (Point * PointToPrice);
+        
+        //riskdoloverdist = riskdollar / distance ;
+        //lotsize = riskdoloverdist * (10/10000.0) ;    // 100 is leverage level
+        
+        // 1 mini contract = $1 quote currency per 1 pip
+        // 1 full contract = $10 quote currency per 1 pip
+        
+        lotsize = riskdollar / distance_pips * 0.1 ;     // the factor 0.1 is for mini contract
 
         Print("[LotSize]:"
               , " | " , "Distance pips: "        , DoubleToStr( (distance / (Point * PointToPrice))  , 0)
@@ -4988,6 +4996,7 @@ void OnTick()
     if( TradeMode == TM_LONG )
       if( macd_HTF_entry_hist_1 > macd_HTF_entry_hist_X )   // MACDH tick direction rule
         if( rsi3_HTF_cock_UP )                                // RSI3 HTF is cocked up
+                //-- COCKED UP RSI 3 DEFINITION IS "CYCLE UP" !!!
                 //-- cocked up = RSI3 crossed 50 already  = above 50, because when it falls below 50
                 //-- it become "Cocked Down", and Cocked Up is false
         {
@@ -5012,6 +5021,7 @@ void OnTick()
     if(TradeMode == TM_SHORT )
       if(macd_HTF_entry_hist_1 < macd_HTF_entry_hist_X)   // MACDH tick direction rule
         if(rsi3_HTF_tick_DOWN )                             // RSI3 HTF ticks down
+          //-- COCKED DOWN RSI3 DEFINITION IS "CYCLE DOWN" !!!
           //-- tick down = RSI3 simply having declining direction, regardless
           //-- in overbought or oversold; both are doesn't matter
         {
