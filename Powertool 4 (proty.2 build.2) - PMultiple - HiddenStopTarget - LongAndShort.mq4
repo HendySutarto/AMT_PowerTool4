@@ -2891,7 +2891,7 @@ void OnTick()
                   if  (iPos == 1)
                   {
                     TradeFlag_ClosedOnBigProfit = true ;
-                    Print("[OnTick]: HIDDEN TARGET PROFIT with TradeFlag_ClosedOnBigProfit = true" );
+                    Print("[OnTick]: OP_BUY: HIDDEN TARGET PROFIT with TradeFlag_ClosedOnBigProfit = true" );
                   }
 
                 } // End of OrderClose()
@@ -2933,7 +2933,7 @@ void OnTick()
                   if  (iPos == 1)
                   {
                     TradeFlag_ClosedOnBigProfit = true ;
-                    Print("[OnTick]: HIDDEN TARGET PROFIT with TradeFlag_ClosedOnBigProfit = true" );
+                    Print("[OnTick]: OP_SELL: HIDDEN TARGET PROFIT with TradeFlag_ClosedOnBigProfit = true" );
                   }                        
 
                 } // End of OrderClose()
