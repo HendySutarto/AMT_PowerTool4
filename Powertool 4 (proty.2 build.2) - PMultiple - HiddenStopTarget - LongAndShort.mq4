@@ -3008,8 +3008,8 @@ void OnTick()
     //-- Print up Hello World from MQH
     if( IsFirstTick_TTF )
     {
-          mqhHelloWorld(); //-- Call the MQH Top Time Frame
-          Print( "[OnTick]: This is to test Time Differences");
+          // mqhHelloWorld(); //-- Call the MQH Top Time Frame
+          Print( "[OnTick]: First Tick of Top Time Frame");
           Print( "[OnTick]>[WeeklyBar]: TimeCurrent : " , TimeToStr( TimeCurrent(), TIME_DATE|TIME_MINUTES ) );
           Print( "[OnTick]>[WeeklyBar]: TimeLocal   : " , TimeToStr( TimeLocal()  , TIME_DATE|TIME_MINUTES ) );
           Print( "[OnTick]>[WeeklyBar]: TimeGMT     : " , TimeToStr( TimeGMT()    , TIME_DATE|TIME_MINUTES ) );
@@ -3056,8 +3056,7 @@ void OnTick()
     When HTF_Barname_Curr = HTF_Barname_Prev, IsFirstTick_HTF = FALSE !!
     */
 
-
-
+    
 
 
     //+---------------------------------------------------------------------------------------------+
@@ -3067,34 +3066,34 @@ void OnTick()
     if( IsFirstTick_HTF )
     {
 
-    // Draw vertical line
-    // ==========================================
+      // Draw vertical line
+      // ==========================================
 
-    string theDayTme = TimeToStr( Time[0] , TIME_DATE|TIME_MINUTES ) ;
-    string VlineName = "VL" + theDayTme ;
+      string theDayTme = TimeToStr( Time[0] , TIME_DATE|TIME_MINUTES ) ;
+      string VlineName = "VL" + theDayTme ;
 
-    VLineCreate(0, VlineName , 0 , 0 , clrBlueViolet , STYLE_SOLID , 1 , false, false, true , 0) ;
+      VLineCreate(0, VlineName , 0 , 0 , clrBlueViolet , STYLE_SOLID , 1 , false, false, true , 0) ;
 
-    // Add description
-    ObjectSetText( VlineName , "Line for: " + theDayTme , 9 , "Arial" , clrBlueViolet );
-
-
-
-    // Add text
-    // ---------------------------------------------------
-
-    //--- reset the error value
-    ResetLastError();
-
-    string txtName = "TXT" + theDayTme ;
-    double verticalOffset = Point * 10.0 * 5.0 ;
+      // Add description
+      ObjectSetText( VlineName , "Line for: " + theDayTme , 9 , "Arial" , clrBlueViolet );
 
 
-    //--- create Text object
 
-    ObjectCreate( txtName , OBJ_TEXT , 0 , Time[0] , Close[1] + verticalOffset );
-    ObjectSetText( txtName , DayOfWeekString( DayOfWeek() ) ,9 , "Arial" , clrRed );
-    ObjectSet( txtName , OBJPROP_ANGLE , 90.0 );
+      // Add text
+      // ---------------------------------------------------
+
+      //--- reset the error value
+      ResetLastError();
+
+      string txtName = "TXT" + theDayTme ;
+      double verticalOffset = Point * 10.0 * 5.0 ;
+
+
+      //--- create Text object
+
+      ObjectCreate( txtName , OBJ_TEXT , 0 , Time[0] , Close[1] + verticalOffset );
+      ObjectSetText( txtName , DayOfWeekString( DayOfWeek() ) ,9 , "Arial" , clrRed );
+      ObjectSet( txtName , OBJPROP_ANGLE , 90.0 );
 
 
     }
@@ -3129,8 +3128,7 @@ void OnTick()
     When MTF_Barname_Curr = MTF_Barname_Prev , IsFirstTick_MTF  = FALSE !!
     */
 
-
-
+    //-------------------------
 
 
 
@@ -3177,10 +3175,48 @@ void OnTick()
 
 
 
-    /***********************************************************************************************/
+    /*XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX*/
+    /*XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX*/
+    /*XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX*/
+    
     /***   FROM THIS POINT FORWARD, ONLY FIRST TICK OF LTF OPERATES   ***/
-    /***********************************************************************************************/
+    
+    /*XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX*/
+    /*XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX*/
+    /*XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX*/
     //-- Other ticks in the LTF bar are skipped
+
+    
+    //-------------------------
+    //  DEBUGGING_FOR_VPS
+    //-------------------------    
+    Print( "[OnTick]>[Barname]>[TTF_Barname_Curr]> " , IntegerToString( TTF_Barname_Curr ) );
+    Print( "[OnTick]>[Barname]>[TTF_Barname_Prev]> " , IntegerToString( TTF_Barname_Prev ) );
+
+
+    
+    //-------------------------
+    //  DEBUGGING_FOR_VPS
+    //-------------------------
+    Print( "[OnTick]>[Barname]>[HTF_Barname_Curr]> " , IntegerToString( HTF_Barname_Curr ) );
+    Print( "[OnTick]>[Barname]>[HTF_Barname_Prev]> " , IntegerToString( HTF_Barname_Prev ) );
+    
+
+    //  DEBUGGING_FOR_VPS
+    //-------------------------
+    Print( "[OnTick]>[Barname]>[MTF_Barname_Curr]> " , IntegerToString( MTF_Barname_Curr ) );
+    Print( "[OnTick]>[Barname]>[MTF_Barname_Prev]> " , IntegerToString( MTF_Barname_Prev ) );
+
+    
+    
+    //-------------------------
+    //  DEBUGGING_FOR_VPS
+    //-------------------------
+    Print( "[OnTick]>[Barname]>[LTF_Barname_Curr]> " , IntegerToString( LTF_Barname_Curr ) );
+    Print( "[OnTick]>[Barname]>[LTF_Barname_Prev]> " , IntegerToString( LTF_Barname_Prev ) );    
+
+
+    
 
 
 
@@ -3314,14 +3350,29 @@ void OnTick()
     if( IsFirstTick_HTF )
       {
         //Alert("First tick >>>> HTF") ;
+        Print("" );
+        Print("" );
+        Print("[OnTick]: This is FirstTick_HTF" );
+        Print("" );
+        Print("" );
       }
     if( IsFirstTick_MTF )
       {
         //Alert("First tick >>>> MTF") ;
+        Print("" );
+        Print("" );
+        Print("[OnTick]: This is FirstTick_MTF" );
+        Print("" );
+        Print("" );
       }
     if(IsFirstTick_LTF)
       {
         //Alert("First tick > LTF");
+        Print("" );
+        Print("" );
+        Print("[OnTick]: This is FirstTick_LTF" );
+        Print("" );
+        Print("" );
       }
 
 
@@ -3362,6 +3413,15 @@ void OnTick()
     }
 
 
+    //-------------------------
+    //  DEBUGGING_FOR_VPS
+    //-------------------------
+    
+    Print(
+      "[OnTick]>[TTF Indicators]: " ,
+      " MACDH macd_TTF_exit_hist_1: "  , DoubleToStr(macd_TTF_exit_hist_1, 6 ) , " / " ,
+      " MACDH macd_TTF_exit_hist_X: "  , DoubleToStr(macd_TTF_exit_hist_X, 6) 
+    );
 
 
 
@@ -3494,8 +3554,36 @@ void OnTick()
 
 
 
+    //-------------------------
+    //  DEBUGGING_FOR_VPS
+    //-------------------------
+    
+    Print(  "[OnTick]>[HTF Indicators]: Moving Averages: " ,
+      " sma_HTF_drift_1: "  , DoubleToStr(sma_HTF_drift_1, 4 ) , " / " ,
+      " sma_HTF_drift_X: "  , DoubleToStr(sma_HTF_drift_X, 4 )       
+        );
+      
+    Print(  "[OnTick]>[HTF Indicators]: RSI3 : " ,
+      " rsi3_HTF_1: "  , DoubleToStr(rsi3_HTF_1, 1 ) , " / " ,
+      " rsi3_HTF_2: "  , DoubleToStr(rsi3_HTF_2, 1 )       
+        );
+      
+    Print(  "[OnTick]>[HTF Indicators]: MACDH_OnCalc : " ,
+      " macd_HTF_entry_hist_1: "  , DoubleToStr(macd_HTF_entry_hist_1, 6 ) , " / " ,
+      " macd_HTF_entry_hist_X: "  , DoubleToStr(macd_HTF_entry_hist_X, 6 )       
+        );
 
-
+        
+    Print(  "[OnTick]>[HTF Indicators]: HHV & LLV 3 bars : " ,
+      " highestHigh_HTF_3bars: "  , DoubleToStr(highestHigh_HTF_3bars, 4 ) , " / " ,
+      " lowestLow_HTF_3bars: "    , DoubleToStr(lowestLow_HTF_3bars  , 4 )       
+        );
+        
+        
+        
+        
+        
+        
     //+---------------------------------------------------------------------------------------------+
     //| MTF INDICATORS                                                                               |
     //+---------------------------------------------------------------------------------------------+
@@ -3520,11 +3608,11 @@ void OnTick()
       rsi_MTF_slow_1 = iRSI(NULL , PERIOD_MTF , 9 , PRICE_CLOSE , 1 );
       rsi_MTF_slow_X = iRSI(NULL , PERIOD_MTF , 9 , PRICE_CLOSE , 2 );
 
-      rsi_MTF_fast_1 = iRSI(NULL , PERIOD_MTF , 4 , PRICE_CLOSE , 1 );  // Originally 6, not 4
-      rsi_MTF_fast_X = iRSI(NULL , PERIOD_MTF , 4 , PRICE_CLOSE , 2 );  // Originally 6, not 4
-      rsi_MTF_fast_2 = iRSI(NULL , PERIOD_MTF , 4 , PRICE_CLOSE , 2 );  // Originally 6, not 4
-      rsi_MTF_fast_3 = iRSI(NULL , PERIOD_MTF , 4 , PRICE_CLOSE , 3 );  // Originally 6, not 4
-      rsi_MTF_fast_4 = iRSI(NULL , PERIOD_MTF , 4 , PRICE_CLOSE , 4 );  // Originally 6, not 4
+      rsi_MTF_fast_1 = iRSI(NULL , PERIOD_MTF , 6 , PRICE_CLOSE , 1 );  // Originally 6, not 4
+      rsi_MTF_fast_X = iRSI(NULL , PERIOD_MTF , 6 , PRICE_CLOSE , 2 );  // Originally 6, not 4
+      rsi_MTF_fast_2 = iRSI(NULL , PERIOD_MTF , 6 , PRICE_CLOSE , 2 );  // Originally 6, not 4
+      rsi_MTF_fast_3 = iRSI(NULL , PERIOD_MTF , 6 , PRICE_CLOSE , 3 );  // Originally 6, not 4
+      rsi_MTF_fast_4 = iRSI(NULL , PERIOD_MTF , 6 , PRICE_CLOSE , 4 );  // Originally 6, not 4
 
 
       // Print the tick count at hour 5 and on the fourth day
@@ -3542,6 +3630,21 @@ void OnTick()
 
 
 
+    //-------------------------
+    //  DEBUGGING_FOR_VPS
+    //-------------------------
+    
+    Print(  "[OnTick]>[MTF Indicators]: RSI3 : " ,
+      " rsi_MTF_fast_1: "  , DoubleToStr(rsi_MTF_fast_1, 1 ) , " / " ,
+      " rsi_MTF_fast_X: "  , DoubleToStr(rsi_MTF_fast_X, 1 ) , " / " ,
+      " rsi_MTF_fast_3: "  , DoubleToStr(rsi_MTF_fast_3, 1 ) 
+        );
+      
+
+        
+        
+        
+        
 
     //+---------------------------------------------------------------------------------------------+
     //| LTF INDICATORS                                                                              |
@@ -3594,7 +3697,23 @@ void OnTick()
 
 
 
-
+    //-------------------------
+    //  DEBUGGING_FOR_VPS
+    //-------------------------
+    
+    Print(  "[OnTick]>[LTF Indicators]: Bollinger Band : " ,
+      " bb_LTF_channel1_upper_1: "  , DoubleToStr(bb_LTF_channel1_upper_1, 4 ) , " / " ,
+      " bb_LTF_channel2_lower_1: "  , DoubleToStr(bb_LTF_channel2_lower_1, 4 ) , " / " ,
+      " bb_LTF_channel1_upper_2: "  , DoubleToStr(bb_LTF_channel1_upper_2, 4 ) , " / " ,
+      " bb_LTF_channel2_lower_2: "  , DoubleToStr(bb_LTF_channel2_lower_2, 4 ) 
+        );
+      
+    Print(  "[OnTick]>[LTF Indicators]: LRCO : " ,
+      " lrco_LTF_1fast_1: "  , DoubleToStr(lrco_LTF_1fast_1, 4 ) , " / " ,
+      " lrco_LTF_1fast_2: "  , DoubleToStr(lrco_LTF_1fast_2, 4 ) , " / " ,
+      " lrco_LTF_2slow_1: "  , DoubleToStr(lrco_LTF_2slow_1, 4 ) , " / " ,
+      " lrco_LTF_2slow_2: "  , DoubleToStr(lrco_LTF_2slow_2, 4 ) 
+        );
 
 
 
@@ -4910,7 +5029,7 @@ void OnTick()
                       );
 
 
-                    // Cross Down test
+                    // Cross Down test 
                     if( rsi_MTF_fast_1 > 60.0 )
                       {
 
@@ -5005,6 +5124,14 @@ void OnTick()
 
 
 
+    //-------------------------
+    //  DEBUGGING_FOR_VPS
+    //-------------------------        
+    Print("[OnTick] >> HTF_SetupType_1_LONG: ", BoolToStr( HTF_SetupType_1_LONG ) );
+    Print("[OnTick] >> HTF_SetupType_2_LONG: ", BoolToStr( HTF_SetupType_2_LONG ) );
+
+
+
     // **** HTF SETUP FOR SELLING  ***
     /*-----------------------------------------------------------------------------------*/
 
@@ -5069,6 +5196,18 @@ void OnTick()
     // Bollinger band, hence not oversold in technical manner.
     // This rule allows window of "oversold" still valid
 
+    
+    
+
+
+    //-------------------------
+    //  DEBUGGING_FOR_VPS
+    //-------------------------        
+    Print("[OnTick] >> MTF_SetupType_1_LONG: ", BoolToStr( MTF_SetupType_1_LONG ) );
+    
+
+    
+    
 
     // **** MTF SETUP FOR SELLING ***
     //------------------------------------------------------------------------------------
@@ -5193,6 +5332,21 @@ void OnTick()
                 triggerBuy = true ;
                 EntrySignalCountBuy++ ;
 
+                
+                
+                
+                
+
+                //-------------------------
+                //  DEBUGGING_FOR_VPS
+                //-------------------------        
+                Print("[OnTick] >>> triggerBuy: ", BoolToStr( triggerBuy ) );
+                
+                
+                
+                
+                
+                
 
                 // Draw Up arrow
                 DrawArrowUp("Up"+Bars , Low[1]-10*Point , clrYellow );
