@@ -1,5 +1,3 @@
-# AMT_PowerTool4
-
 # Powertool 4.MQ4
 
 This is first artifact, prior to adding CSVPositions.CSV.
