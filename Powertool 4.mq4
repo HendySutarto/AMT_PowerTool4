@@ -4044,7 +4044,7 @@ void OnTick()
                                             newStopPrice    ,   //-- This is new stop loss price
                                             OrderTakeProfit()   ,
                                             0                   ,
-                                            clrYellow               //-- mark with yellow arrow
+                                            clrDarkGreen               //-- mark with yellow arrow
                                             );
                       } // End of ELSE on if( HiddenStopLossTarget == true )
 
@@ -4174,7 +4174,7 @@ void OnTick()
                                         newStopPrice  ,   //-- this is new stop loss price
                                         OrderTakeProfit() ,
                                         0                 ,
-                                        clrYellow             //-- mark with yellow arrow
+                                        clrDarkGreen             //-- mark with yellow arrow
                                         );
                   } // End of ELSE on if( HiddenStopLossTarget )
 
@@ -4322,7 +4322,7 @@ void OnTick()
                                 ProfitLock250pips_NewStopPrice ,
                                 OrderTakeProfit() ,
                                 0 ,
-                                clrYellow     //-- mark with yellow arrow
+                                clrDarkGreen     //-- mark with yellow arrow
                                 );
                 }
 
@@ -4419,7 +4419,7 @@ void OnTick()
                               ProfitLock250pips_NewStopPrice ,
                               OrderTakeProfit() ,
                               0 ,
-                              clrYellow     //-- mark with yellow arrow
+                              clrDarkGreen     //-- mark with yellow arrow
                               );
 
                 } // End of if( HiddenStopLossTarget )
@@ -5491,7 +5491,7 @@ void OnTick()
                 
 
                 // Draw Up arrow
-                DrawArrowUp("Up"+Bars , Low[1]-10*Point , clrYellow );
+                DrawArrowUp("Up"+Bars , Low[1]-10*Point , clrDarkGreen );
 
                   Print("");    //-- allow one row above
                   Print("[OnTick] > [DrawArrowUp] " ,
@@ -5666,7 +5666,7 @@ void OnTick()
 
 
                 // Draw Dn arrow
-                DrawArrowDown("Dn"+Bars , High[1]+10*Point , clrYellow );
+                DrawArrowDown("Dn"+Bars , High[1]+10*Point , clrDarkGreen );
 
                   Print("");    //-- allow one row above
                   Print("[OnTick] > [DrawArrowDown] " ,
