@@ -18,7 +18,7 @@
 Version 2.00
 2017.11.04 (1108) - Saturday
 
-Since the use of GITHUB facility to keep with versioning, 
+Since the use of GITHUB facility to keep with versioning,
 the naming is simplified from previously:
   "Powertool 4 (proty.2 build.2) - PMultiple - HiddenStopTarget - LongAndShort.mq4"
 To - simply:
@@ -172,46 +172,59 @@ struct    SLTPstruct
 
 
 
-struct  OrderSendSTRUCT
+struct  CSVPositionsStruct
+// "p_" is for "property"
 {
-    string   _Symbol            ;           
-    int      _CommandDirection  ;               
-    double   _Volume            ;            
-    double   _Price             ;             
-    int      _Slippage          ;          
-    double   _Stoploss          ;          
-    double   _Takeprofit        ;        
-    string   _Comment           ;      
-    int      _Magic             ;           
-    datetime _Expiration        ;      
-    color    _Arrow_color       ;  
+    int       p_TicketNo           ;
+    int       p_MagicNum           ;
+    int       p_PositionNo         ;
+    double    p_LotSize            ;
+    datetime  p_EntryDateTiime     ;
+    double    p_EntryPrice         ;
+    double    p_Stoploss           ;
+    double    p_Takeprofit         ;
+    string    p_Symbol             ;
+    int       p_TradeDirection     ;    
+    int       p_Slippage           ;
+    string    p_Comment            ;
+    datetime  p_Expiration         ;
+    color     p_Arrow_color        ;
+    int       p_MethodOfTrading    ;   // Leg of the Year OR Medium Trend
+    double    p_MaxPosP1ProfitPips ;
 };
+
+struct  CSVTradingManagement
+{
+  // "p_" is for "property"
+    double    p_MaxPosP1ProfitPips ;
+}
+
 
 
   /* NOTE: -----------------------------------------------------------------------------------\
-  the OrderSendSTRUCT is useful, 
+  the CSVPositionsStruct is useful,
   SO THAT,
     -: Ready toward storing all parameters value on a CSV for persistent records
     -: Useful when picking up opening trades after the robot restarting
   \* ----------------------------------------------------------------------------------------*/
-    
+
 
 /*
 
-int  OrderSend( 
-   string   symbol,              // symbol 
-   int      cmd,                 // operation 
-   double   volume,              // volume 
-   double   price,               // price 
-   int      slippage,            // slippage 
-   double   stoploss,            // stop loss 
-   double   takeprofit,          // take profit 
-   string   comment=NULL,        // comment 
-   int      magic=0,             // magic number 
-   datetime expiration=0,        // pending order expiration 
-   color    arrow_color=clrNONE  // color 
+int  OrderSend(
+   string   symbol,              // symbol
+   int      cmd,                 // operation
+   double   volume,              // volume
+   double   price,               // price
+   int      slippage,            // slippage
+   double   stoploss,            // stop loss
+   double   takeprofit,          // take profit
+   string   comment=NULL,        // comment
+   int      magic=0,             // magic number
+   datetime expiration=0,        // pending order expiration
+   color    arrow_color=clrNONE  // color
    );
- 
+
 
 */
 
@@ -443,7 +456,7 @@ bool      ThresholdProfitPips_Passed      ;
 double    TrailingStopPrice_BUY  ;
 double    TrailingStopPrice_SELL  ;
 
-// Trailing stop variables are global, because multi parts manipulate variables: 
+// Trailing stop variables are global, because multi parts manipulate variables:
 // 1. entry procedure initiates the variable on P1
 // 2. OnTick updates the variable, and make decision when exit procedure has to happen
 // This is better than using parameters cross procedure, which is confusing.
@@ -451,7 +464,7 @@ double    TrailingStopPrice_SELL  ;
 
 // RULE ON GLOBAL VARIABLE OR LOCAL VARIABLE:
 // Anything part of the system decisioning, should be on GLOBAL VARIABLE !!
-// Anything part of working on nitty gritty calculation, should be on LOCAL VARIABLE 
+// Anything part of working on nitty gritty calculation, should be on LOCAL VARIABLE
 //    inside a procedure
 
 
@@ -501,6 +514,11 @@ SLTPstruct  PositionTracker[] ;
 //-- Uses the struct to hold stop loss, target
 
 
+//+-------------------------------------------------------------------------------------------------+
+//| MAX EVER PROFIT PIPS ON P1                                                                      |
+//+-------------------------------------------------------------------------------------------------+
+
+double  P1MaxEverProfitPips                 ;
 
 
 
@@ -518,9 +536,9 @@ int OnInit()
 
   //-- To account for 5 digit brokers
   if(Digits == 5 || Digits == 3 || Digits == 1) PointToPrice = 10 ; else PointToPrice = 1;
-  
-  Print(  "[OnInit]" ,  
-          " Digits: "               , IntegerToString( Digits ) , 
+
+  Print(  "[OnInit]" ,
+          " Digits: "               , IntegerToString( Digits ) ,
           " Point: "                , DoubleToStr( Point , 2 ),
           " PointToPrice: "         , IntegerToString( PointToPrice ),
           " Point * PointToPrice: " , DoubleToStr( Point * PointToPrice , 2 )
@@ -572,7 +590,7 @@ int OnInit()
 
 
   /*++  PROFIT TARGET PRICE >> STRATEGY_LONGTREND_LEG_OF_THE_YEAR ++*/
-  /*-----------------------------------------------------------------------------------*/  
+  /*-----------------------------------------------------------------------------------*/
   // OnInit()
 
   // LARGE PROFIT - TARGET
@@ -606,17 +624,17 @@ int OnInit()
 
 
   /*++  PROFIT TARGET PRICE >> STRATEGY_MEDIUMTREND_WEEKLY_LARGE_RANGE  ++*/
-  /*-----------------------------------------------------------------------------------*/  
+  /*-----------------------------------------------------------------------------------*/
   // OnInit()
-  
-  // MEDIUM PROFIT TARGET has its setting place directly on Trading Parameters setting 
-  
+
+  // MEDIUM PROFIT TARGET has its setting place directly on Trading Parameters setting
+
   // extern  string      Header1a                  =
   //                                        "----------- Strategy Medium Exit Target Price ------------" ;
   // extern  double      TargetPriceMediumTrend    = 106.52 ;
 
 
-  
+
 
 
 
@@ -769,11 +787,11 @@ int OnInit()
 
 
 
-  
-  
-  
-  
-  
+
+
+
+
+
 //+-------------------------------------------------------------------------------------------------+
 //| Expert deinitialization function                                                                |
 //+-------------------------------------------------------------------------------------------------+
@@ -1435,17 +1453,17 @@ void Execute_Entry_Buy_PMultiple( int &max_position , double  &atr_1 , string &c
               " planned stop = " , DoubleToString(plannedStop , 4)
              );
 
-        Print("[Execute_Entry_Buy_PMultiple]:" , 
+        Print("[Execute_Entry_Buy_PMultiple]:" ,
               " Bid: " , MarketInfo(Symbol(),MODE_BID) , " / " , DoubleToStr(Bid , 5) ,
               " Ask: " , MarketInfo(Symbol(),MODE_ASK) , " / " , DoubleToStr(Ask , 5) ,
               " Spread: " , MarketInfo(Symbol(),MODE_SPREAD) ,
               " Spread Pips: " ,  DoubleToStr( (Ask-Bid)/(Point * PointToPrice) , 2)
-              );             
-             
+              );
+
       }
 
     double  priceAsk        = Ask;
-    
+
     ENUM_TRADEDIRECTION     direction = DIR_BUY ;
 
 
@@ -1516,16 +1534,16 @@ void Execute_Entry_Buy_PMultiple( int &max_position , double  &atr_1 , string &c
       PositionTracker[iPos].MarkedToClose = false ;
 
       //-- Prior to Order Sending
-      
-      Print("[Execute_Entry_Buy_PMultiple] > Prior to Order Sending" , 
+
+      Print("[Execute_Entry_Buy_PMultiple] > Prior to Order Sending" ,
             " Bid: " , MarketInfo(Symbol(),MODE_BID) , " / " , DoubleToStr(Bid , 5) ,
             " Ask: " , MarketInfo(Symbol(),MODE_ASK) , " / " , DoubleToStr(Ask , 5) ,
             " Spread: " , MarketInfo(Symbol(),MODE_SPREAD) ,
             " Spread Pips: " ,  DoubleToStr( (Ask-Bid)/(Point * PointToPrice) , 2)
-            );                   
-      
-      
-      
+            );
+
+
+
       //-- Open the order
       ticket = OrderSend(
                       Symbol()
@@ -1541,17 +1559,17 @@ void Execute_Entry_Buy_PMultiple( int &max_position , double  &atr_1 , string &c
                   ,   0
                   ,   clrGreen
                   );
-                  
-                  
-      Print("[Execute_Entry_Buy_PMultiple] > AFTER Order Sending" , 
+
+
+      Print("[Execute_Entry_Buy_PMultiple] > AFTER Order Sending" ,
             " Ticket #: " , IntegerToString( ticket ) ,
             " Bid: " , MarketInfo(Symbol(),MODE_BID) , " / " , DoubleToStr(Bid , 5) ,
             " Ask: " , MarketInfo(Symbol(),MODE_ASK) , " / " , DoubleToStr(Ask , 5) ,
             " Spread: " , MarketInfo(Symbol(),MODE_SPREAD) ,
             " Spread Pips: " ,  DoubleToStr( (Ask-Bid)/(Point * PointToPrice) , 2)
-            );    
+            );
 
-            
+
 
       //-- Record tracker for the position
       PositionTracker[iPos].Ticket        = ticket            ;
@@ -2028,8 +2046,8 @@ void Execute_Entry_Sell_PMultiple( int &max_position , double  &atr_1 , string &
               " ----> CAP Distance ", DoubleToString(CapOnStopDistancePips , 0)," pips is reached" ,
               " planned stop = " , DoubleToString(plannedStop , 4)
              );
-             
-        Print("[Execute_Entry_Sell_PMultiple]:" , 
+
+        Print("[Execute_Entry_Sell_PMultiple]:" ,
               " Bid: " , MarketInfo(Symbol(),MODE_BID) , " / " , DoubleToStr(Bid , 5) ,
               " Ask: " , MarketInfo(Symbol(),MODE_ASK) , " / " , DoubleToStr(Ask , 5) ,
               " Spread: " , MarketInfo(Symbol(),MODE_SPREAD) ,
@@ -2037,7 +2055,7 @@ void Execute_Entry_Sell_PMultiple( int &max_position , double  &atr_1 , string &
               );
       }
 
-    double                  priceBid        = Bid;        
+    double                  priceBid        = Bid;
     ENUM_TRADEDIRECTION     direction       = DIR_SELL ;
 
 
@@ -2108,17 +2126,17 @@ void Execute_Entry_Sell_PMultiple( int &max_position , double  &atr_1 , string &
       PositionTracker[iPos].MarkedToClose = false ;
 
       //-- Prior to Order Sending
-      
-      Print("[Execute_Entry_Sell_PMultiple] > Prior to Order Sending" , 
+
+      Print("[Execute_Entry_Sell_PMultiple] > Prior to Order Sending" ,
             " Bid: " , MarketInfo(Symbol(),MODE_BID) , " / " , DoubleToStr(Bid , 5) ,
             " Ask: " , MarketInfo(Symbol(),MODE_ASK) , " / " , DoubleToStr(Ask , 5) ,
             " Spread: " , MarketInfo(Symbol(),MODE_SPREAD) ,
             " Spread Pips: " ,  DoubleToStr( (Ask-Bid)/(Point * PointToPrice) , 2)
-            );                   
-      
-      
-      
-      
+            );
+
+
+
+
       //-- Open the order
       ticket = OrderSend(
                       Symbol()
@@ -2135,16 +2153,16 @@ void Execute_Entry_Sell_PMultiple( int &max_position , double  &atr_1 , string &
                   ,   clrGreen
                   );
 
-      Print("[Execute_Entry_Sell_PMultiple] > AFTER Order Sending" , 
+      Print("[Execute_Entry_Sell_PMultiple] > AFTER Order Sending" ,
             " Ticket #: " , IntegerToString( ticket ) ,
             " Bid: " , MarketInfo(Symbol(),MODE_BID) , " / " , DoubleToStr(Bid , 5) ,
             " Ask: " , MarketInfo(Symbol(),MODE_ASK) , " / " , DoubleToStr(Ask , 5) ,
             " Spread: " , MarketInfo(Symbol(),MODE_SPREAD) ,
             " Spread Pips: " ,  DoubleToStr( (Ask-Bid)/(Point * PointToPrice) , 2)
-            );    
-                  
-                  
-                  
+            );
+
+
+
       //-- Record tracker for the position
       PositionTracker[iPos].Ticket        = ticket            ;
       PositionTracker[iPos].PositionSequence = iPos           ;
@@ -2477,15 +2495,15 @@ double LotSize(
       {
         double riskdoloverdist ;
         double distance_pips ;
-        
+
         distance_pips = distance / (Point * PointToPrice);
-        
+
         //riskdoloverdist = riskdollar / distance ;
         //lotsize = riskdoloverdist * (10/10000.0) ;    // 100 is leverage level
-        
+
         // 1 mini contract = $1 quote currency per 1 pip
         // 1 full contract = $10 quote currency per 1 pip
-        
+
         lotsize = riskdollar / distance_pips * 0.1 ;     // the factor 0.1 is for mini contract
 
         Print("[LotSize]:"
@@ -3015,8 +3033,8 @@ void OnTick()
                         " OrderCloseTime():",   OrderCloseTime() ,
                         " OrderProfit(): " ,    DoubleToString(OrderProfit() , 2)
                         );
-                        
-                  // LOGIC #2 When Position #1 hits PROFIT TARGET 
+
+                  // LOGIC #2 When Position #1 hits PROFIT TARGET
                   // Tag for Large Profit
                   if  (iPos == 1)
                   {
@@ -3058,13 +3076,13 @@ void OnTick()
                         " OrderProfit(): " ,    DoubleToString(OrderProfit() , 2)
                         );
 
-                  // LOGIC #2 When Position #1 hits PROFIT TARGET 
+                  // LOGIC #2 When Position #1 hits PROFIT TARGET
                   // Tag for Large Profit
                   if  (iPos == 1)
                   {
                     TradeFlag_ClosedOnBigProfit = true ;
                     Print("[OnTick]: OP_SELL: HIDDEN TARGET PROFIT with TradeFlag_ClosedOnBigProfit = true" );
-                  }                        
+                  }
 
                 } // End of OrderClose()
 
@@ -3186,7 +3204,7 @@ void OnTick()
     When HTF_Barname_Curr = HTF_Barname_Prev, IsFirstTick_HTF = FALSE !!
     */
 
-    
+
 
 
     //+---------------------------------------------------------------------------------------------+
@@ -3308,45 +3326,45 @@ void OnTick()
     /*XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX*/
     /*XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX*/
     /*XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX*/
-    
+
     /***   FROM THIS POINT FORWARD, ONLY FIRST TICK OF LTF OPERATES   ***/
-    
+
     /*XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX*/
     /*XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX*/
     /*XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX*/
     //-- Other ticks in the LTF bar are skipped
 
-    
+
     //-------------------------
     //  DEBUGGING_FOR_VPS
-    //-------------------------    
+    //-------------------------
     // Print( "[OnTick]>[Barname]>[TTF_Barname_Curr]> " , IntegerToString( TTF_Barname_Curr ) );
     // Print( "[OnTick]>[Barname]>[TTF_Barname_Prev]> " , IntegerToString( TTF_Barname_Prev ) );
 
 
-    
+
     //-------------------------
     //  DEBUGGING_FOR_VPS
     //-------------------------
     // Print( "[OnTick]>[Barname]>[HTF_Barname_Curr]> " , IntegerToString( HTF_Barname_Curr ) );
     // Print( "[OnTick]>[Barname]>[HTF_Barname_Prev]> " , IntegerToString( HTF_Barname_Prev ) );
-    
+
 
     //  DEBUGGING_FOR_VPS
     //-------------------------
     // Print( "[OnTick]>[Barname]>[MTF_Barname_Curr]> " , IntegerToString( MTF_Barname_Curr ) );
     // Print( "[OnTick]>[Barname]>[MTF_Barname_Prev]> " , IntegerToString( MTF_Barname_Prev ) );
 
-    
-    
+
+
     //-------------------------
     //  DEBUGGING_FOR_VPS
     //-------------------------
     // Print( "[OnTick]>[Barname]>[LTF_Barname_Curr]> " , IntegerToString( LTF_Barname_Curr ) );
-    // Print( "[OnTick]>[Barname]>[LTF_Barname_Prev]> " , IntegerToString( LTF_Barname_Prev ) );    
+    // Print( "[OnTick]>[Barname]>[LTF_Barname_Prev]> " , IntegerToString( LTF_Barname_Prev ) );
 
 
-    
+
 
 
 
@@ -3358,7 +3376,7 @@ void OnTick()
     //-- PREVENT NEW ENTRY IF BIG PROFIT HAS BEEN ACHIEVED
     //-- BIG PROFIT IS "LEG OF THE YEAR"; YOU WAIT UNTIL NEXT YEAR
     //-- OR YOU DISCOVER A STRONG WEEKLY "V" or "A" PATTERN OCCURS IN THE SAME YEAR
-    
+
     //-- BIG PROFIT LOGIC
     //-- On CLOSED ORDERs:
       // LOGIC #1 - When orderProfitPips get larger than 0.75 * Percentile75 of target price
@@ -3449,10 +3467,10 @@ void OnTick()
                   Print("[OnTick]:"
                         " Ticket: #" , OrderTicket() ,
                         " OrderProfitPips: " , DoubleToStr( orderProfitPips ,0)  , "."
-                        " This is CHECK on [for (int i=totalHistoryOrders-1 ; i>=0 ; i--)], i #" , i              
+                        " This is CHECK on [for (int i=totalHistoryOrders-1 ; i>=0 ; i--)], i #" , i
                         );
-              
-              
+
+
               // LOGIC #1 - When orderProfitPips get larger than 0.75 * Percentile75 of target price
               if ( orderProfitPips >= 0.75 * SymbolBasedTargetPrice75Pct( Symbol() ) )
               //-- TO DO
@@ -3463,8 +3481,8 @@ void OnTick()
                 TradeFlag_ClosedOnBigProfit = true ;
                 break;
               }
-              
-              // NOTE THE  LOGIC #2 - When profit target is met = large profit 
+
+              // NOTE THE  LOGIC #2 - When profit target is met = large profit
               // is for STRATEGY_MEDIUMTREND_WEEKLY_LARGE_RANGE
               // See "2. MONITOR TARGET" for Implementation
           }
@@ -3656,7 +3674,7 @@ void OnTick()
       // int val_index_highest = iHighest( NULL , PERIOD_HTF , MODE_HIGH , 3 , 1 ) ;
       // highestHigh_HTF_3bars = High[ val_index_highest ] ;
 
-      highestHigh_HTF_3bars = iCustom( NULL , PERIOD_HTF , "PChannel" , 3 , 
+      highestHigh_HTF_3bars = iCustom( NULL , PERIOD_HTF , "PChannel" , 3 ,
             0 , 1  );
             // Buffer = 0 / index = 1
       //
@@ -3664,8 +3682,8 @@ void OnTick()
       // ----------------------
       // int val_index_lowest  = iLowest( NULL , PERIOD_HTF , MODE_LOW , 3 , 1  );
       // lowestLow_HTF_3bars   = Low[ val_index_lowest ];
-      
-      lowestLow_HTF_3bars = iCustom(  NULL , PERIOD_HTF , "PChannel" , 3 , 
+
+      lowestLow_HTF_3bars = iCustom(  NULL , PERIOD_HTF , "PChannel" , 3 ,
             1 , 1);
             // Buffer = 1 / index = 1
 
@@ -3674,10 +3692,10 @@ void OnTick()
 
 
 
-        
-        
-        
-        
+
+
+
+
     //+---------------------------------------------------------------------------------------------+
     //| MTF INDICATORS                                                                               |
     //+---------------------------------------------------------------------------------------------+
@@ -3737,42 +3755,42 @@ void OnTick()
         //-------------------------
         //  DEBUGGING_FOR_VPS
         //-------------------------
-        
+
         Print(
           "[OnTick]>[TTF Indicators]: " ,
           " MACDH macd_TTF_exit_hist_1: "  , DoubleToStr(macd_TTF_exit_hist_1, 6 ) , " / " ,
-          " MACDH macd_TTF_exit_hist_X: "  , DoubleToStr(macd_TTF_exit_hist_X, 6) 
+          " MACDH macd_TTF_exit_hist_X: "  , DoubleToStr(macd_TTF_exit_hist_X, 6)
         );
 
-        
+
         //-------------------------
         //  HTF_INDICATOR_VALUES
         //-------------------------
-        
+
         Print(  "[OnTick]>[HTF Indicators]: Moving Averages: " ,
           " sma_HTF_drift_1: "  , DoubleToStr(sma_HTF_drift_1, 4 ) , " / " ,
-          " sma_HTF_drift_X: "  , DoubleToStr(sma_HTF_drift_X, 4 )       
-            );
-          
-        Print(  "[OnTick]>[HTF Indicators]: RSI3 : " ,
-          " rsi3_HTF_1: "  , DoubleToStr(rsi3_HTF_1, 1 ) , " / " ,
-          " rsi3_HTF_2: "  , DoubleToStr(rsi3_HTF_2, 1 )       
-            );
-          
-        Print(  "[OnTick]>[HTF Indicators]: MACDH_OnCalc : " ,
-          " macd_HTF_entry_hist_1: "  , DoubleToStr(macd_HTF_entry_hist_1, 6 ) , " / " ,
-          " macd_HTF_entry_hist_X: "  , DoubleToStr(macd_HTF_entry_hist_X, 6 )       
+          " sma_HTF_drift_X: "  , DoubleToStr(sma_HTF_drift_X, 4 )
             );
 
-            
+        Print(  "[OnTick]>[HTF Indicators]: RSI3 : " ,
+          " rsi3_HTF_1: "  , DoubleToStr(rsi3_HTF_1, 1 ) , " / " ,
+          " rsi3_HTF_2: "  , DoubleToStr(rsi3_HTF_2, 1 )
+            );
+
+        Print(  "[OnTick]>[HTF Indicators]: MACDH_OnCalc : " ,
+          " macd_HTF_entry_hist_1: "  , DoubleToStr(macd_HTF_entry_hist_1, 6 ) , " / " ,
+          " macd_HTF_entry_hist_X: "  , DoubleToStr(macd_HTF_entry_hist_X, 6 )
+            );
+
+
         Print(  "[OnTick]>[HTF Indicators]: HHV & LLV 3 bars : " ,
           " highestHigh_HTF_3bars: "  , DoubleToStr(highestHigh_HTF_3bars, 4 ) , " / " ,
-          " lowestLow_HTF_3bars: "    , DoubleToStr(lowestLow_HTF_3bars  , 4 )       
+          " lowestLow_HTF_3bars: "    , DoubleToStr(lowestLow_HTF_3bars  , 4 )
             );
-            
-        
-  
-        
+
+
+
+
         //-------------------------
         //  MTF_INDICATOR_VALUES
         //-------------------------
@@ -3780,17 +3798,17 @@ void OnTick()
         Print(  "[OnTick]>[MTF Indicators]: RSI3 : " ,
           " rsi_MTF_fast_1: "  , DoubleToStr(rsi_MTF_fast_1, 1 ) , " / " ,
           " rsi_MTF_fast_X: "  , DoubleToStr(rsi_MTF_fast_X, 1 ) , " / " ,
-          " rsi_MTF_fast_3: "  , DoubleToStr(rsi_MTF_fast_3, 1 ) 
+          " rsi_MTF_fast_3: "  , DoubleToStr(rsi_MTF_fast_3, 1 )
             );
-  
-    }   // End of if( IsFirstTick_MTF )
-      
-      
 
-        
-        
-        
-        
+    }   // End of if( IsFirstTick_MTF )
+
+
+
+
+
+
+
 
     //+---------------------------------------------------------------------------------------------+
     //| LTF INDICATORS                                                                              |
@@ -3846,19 +3864,19 @@ void OnTick()
     //-------------------------
     //  DEBUGGING_FOR_VPS
     //-------------------------
-    
+
     Print(  "[OnTick]>[LTF Indicators]: Bollinger Band : " ,
       " bb_LTF_channel1_upper_1: "  , DoubleToStr(bb_LTF_channel1_upper_1, 4 ) , " / " ,
       " bb_LTF_channel2_lower_1: "  , DoubleToStr(bb_LTF_channel2_lower_1, 4 ) , " / " ,
       " bb_LTF_channel1_upper_2: "  , DoubleToStr(bb_LTF_channel1_upper_2, 4 ) , " / " ,
-      " bb_LTF_channel2_lower_2: "  , DoubleToStr(bb_LTF_channel2_lower_2, 4 ) 
+      " bb_LTF_channel2_lower_2: "  , DoubleToStr(bb_LTF_channel2_lower_2, 4 )
         );
-      
+
     Print(  "[OnTick]>[LTF Indicators]: LRCO : " ,
       " lrco_LTF_1fast_1: "  , DoubleToStr(lrco_LTF_1fast_1, 4 ) , " / " ,
       " lrco_LTF_1fast_2: "  , DoubleToStr(lrco_LTF_1fast_2, 4 ) , " / " ,
       " lrco_LTF_2slow_1: "  , DoubleToStr(lrco_LTF_2slow_1, 4 ) , " / " ,
-      " lrco_LTF_2slow_2: "  , DoubleToStr(lrco_LTF_2slow_2, 4 ) 
+      " lrco_LTF_2slow_2: "  , DoubleToStr(lrco_LTF_2slow_2, 4 )
         );
 
 
@@ -4044,7 +4062,7 @@ void OnTick()
                                             newStopPrice    ,   //-- This is new stop loss price
                                             OrderTakeProfit()   ,
                                             0                   ,
-                                            clrDarkGreen               //-- mark with yellow arrow
+                                            clrYellow               //-- mark with yellow arrow
                                             );
                       } // End of ELSE on if( HiddenStopLossTarget == true )
 
@@ -4174,7 +4192,7 @@ void OnTick()
                                         newStopPrice  ,   //-- this is new stop loss price
                                         OrderTakeProfit() ,
                                         0                 ,
-                                        clrDarkGreen             //-- mark with yellow arrow
+                                        clrYellow             //-- mark with yellow arrow
                                         );
                   } // End of ELSE on if( HiddenStopLossTarget )
 
@@ -4322,7 +4340,7 @@ void OnTick()
                                 ProfitLock250pips_NewStopPrice ,
                                 OrderTakeProfit() ,
                                 0 ,
-                                clrDarkGreen     //-- mark with yellow arrow
+                                clrYellow             //-- mark with yellow arrow
                                 );
                 }
 
@@ -4419,7 +4437,7 @@ void OnTick()
                               ProfitLock250pips_NewStopPrice ,
                               OrderTakeProfit() ,
                               0 ,
-                              clrDarkGreen     //-- mark with yellow arrow
+                              clrYellow         //-- mark with yellow arrow
                               );
 
                 } // End of if( HiddenStopLossTarget )
@@ -4476,7 +4494,7 @@ void OnTick()
     /***********************************************************************************************/
     /*/////////////////////////////////////////////////////////////////////////////////////////////*/
 
-    
+
 
 
     //+---------------------------------------------------------------------------------------------+
@@ -4515,7 +4533,7 @@ void OnTick()
     /*-----------------------------------------------------------------------------------*/
 
     // CODES NEEDS TO BE CLEAN AS POSSIBLE
-    // COMMENTARIES NEEDS CONCISE, SUCCINCT 
+    // COMMENTARIES NEEDS CONCISE, SUCCINCT
 
 
     bool exitBuy  = false ;
@@ -4576,7 +4594,7 @@ void OnTick()
         //-- as the first tick of W1
 
         // Flag the position at high profit
-        if( OrderP1ProfitPips >= ThresholdProfitPips_HighThresh) 
+        if( OrderP1ProfitPips >= ThresholdProfitPips_HighThresh)
             TradeFlag_ProfitThresholdPassed = true ;
         //-- The flag is reset on entering a new position
         //-- DONE
@@ -4622,7 +4640,7 @@ void OnTick()
               , " MACDH W1 [2]: "       , DoubleToString(macd_TTF_exit_hist_X , 4)
               , " exitBuy: "            , BoolToStr( exitBuy )
             );
-            
+
       }   // End of  if( res == true
           //              && ( _orderType==OP_BUY || _orderType==OP_SELL )
           //              &&  OrderCloseTime() == 0 )
@@ -4786,39 +4804,39 @@ void OnTick()
     \~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
 
 
-    
+
 
     //+---------------------------------------------------------------------------------------------+
     //| EXIT BUY + EXIT SELL STRATEGY_MEDIUMTREND_WEEKLY_LARGE_RANGE TECHNICAL RULE                 |
-    //+---------------------------------------------------------------------------------------------+    
-    
-    
-    
+    //+---------------------------------------------------------------------------------------------+
+
+
+
       // Rule to writing code
       // Plan the idea on paper
         // Details step by step of the idea on paper
-        
+
       // Writing the code on the Notepad++ or IDE
         // Write up the step by step of idea from paper on IDE coding as commentary
         // Fills the steps by steps with proper constructions. Example
-        // of a construct is empty if().. else {}, or for() {} . 
+        // of a construct is empty if().. else {}, or for() {} .
         // A construct provides SKELETON for detailed coding.
-        
-        // Fills the construct with detailed variable declarations, and operations.
-      
-      
-      // This current codes is already in generalized form. Before having generalized form, 
-      // I started writing the codes from simpler, where P1 to P6 entries are in a block each, 
-      // hence long codes. Long codes gives me clarity, however, when changing rules on a block, 
-      // all blocks needs updates. Although simpler in logic, however, it more complex in maintenance.
-      
-      // Generalized form, wraps entries from P1 to P6 into for(i=1 to 6) loop, 
-      // making the code shorter. Shorter codes are easier to maintain, however, the logic is not 
-      // immediately clear.
-      
-      
 
-      
+        // Fills the construct with detailed variable declarations, and operations.
+
+
+      // This current codes is already in generalized form. Before having generalized form,
+      // I started writing the codes from simpler, where P1 to P6 entries are in a block each,
+      // hence long codes. Long codes gives me clarity, however, when changing rules on a block,
+      // all blocks needs updates. Although simpler in logic, however, it more complex in maintenance.
+
+      // Generalized form, wraps entries from P1 to P6 into for(i=1 to 6) loop,
+      // making the code shorter. Shorter codes are easier to maintain, however, the logic is not
+      // immediately clear.
+
+
+
+
     /*++ 	STRATEGY_MEDIUMTREND_WEEKLY_LARGE_RANGE 	++*/
     /*-----------------------------------------------------------------------------------*/
 
@@ -4827,24 +4845,24 @@ void OnTick()
 
     if( IsFirstTick_LTF && Strategy_Trend == STRATEGY_MEDIUMTREND_WEEKLY_LARGE_RANGE )
     {
-      
+
       // Profit pass 500 pips?
-      
+
       // If yes, apply trailing stop
-      
-        // Lowest low of 3 bar, taken its highest value, hence never fall back.        
-        // Draw trailing stop with "x-x" on M5        
+
+        // Lowest low of 3 bar, taken its highest value, hence never fall back.
+        // Draw trailing stop with "x-x" on M5
         // SEE LINE 3468 to 3477 for highest high 3 bar and lowest low 3 bars
-        
-        
+
+
 
         //-- Exit rule that I am comfortable with:
         //-- after 500 pips profit on P1
         //-- Use trailing stop of HTF 3 BARS
-        //-- This allows profit to grow toward profit target of medium trend, and prepare for fallback 
+        //-- This allows profit to grow toward profit target of medium trend, and prepare for fallback
         //-- to lock sizable profit on medium trend
-        
-        //-- The logic works on M5, NOT, on Closing D1       
+
+        //-- The logic works on M5, NOT, on Closing D1
 
 
       //-- Calculate Order Profit in Pips on P1
@@ -4881,21 +4899,21 @@ void OnTick()
 
         //-- Note, Close[1] is the last close of M5 - the lowest time frame,
 
-        // Flag the position if P1 pass the ThresholdProfitPips_LowThresh 
+        // Flag the position if P1 pass the ThresholdProfitPips_LowThresh
         // (I started with 500 pips for this value in the OnInit )
-        
-        if( OrderP1ProfitPips >= ThresholdProfitPips_LowThresh ) 
+
+        if( OrderP1ProfitPips >= ThresholdProfitPips_LowThresh )
             TradeFlag_ProfitThresholdPassed = true ;
 
-        
+
         if( _orderType==OP_BUY )
         {
-          exitBuy = (                    
+          exitBuy = (
                     ( Close[1] < lowestLow_HTF_3bars )
                 &&  TradeFlag_ProfitThresholdPassed
                   );
           // TIPS: Good practice
-          // That TradeFlag_ProfitThresholdPassed is included into the formula for logic, 
+          // That TradeFlag_ProfitThresholdPassed is included into the formula for logic,
           // because TradeFlag_ProfitThresholdPassed is part of exit criteria.
         }
         else if(  _orderType==OP_SELL  )
@@ -4905,17 +4923,17 @@ void OnTick()
                 &&  TradeFlag_ProfitThresholdPassed
                 );
           // TIPS: Good practice
-          // That TradeFlag_ProfitThresholdPassed is included into the formula for logic, 
+          // That TradeFlag_ProfitThresholdPassed is included into the formula for logic,
           // because TradeFlag_ProfitThresholdPassed is part of exit criteria.
-          
+
         }
         else
             {
               Print("[OnTick] - EXIT FOR MEDIUM TREND" ,
                     " *** WARNING: OrderType() is NOT OP_BUY NOR OP_SELL !!!"
                   );
-            }      
-        
+            }
+
 
 
 
@@ -4937,38 +4955,38 @@ void OnTick()
                       , " exitBuy: "            , BoolToStr( exitBuy )
                       , " exitSell: "           , BoolToStr( exitSell )
                     );
-                    
-                    
+
+
                     // Mark LTF with HTF Setup
                     if( _orderType == OP_BUY )
                     {
                       string  txtEXITmarker = "EXITBUYTRAIL_ " + TimeToStr(Time[0] , TIME_DATE|TIME_MINUTES ) ;
                       ObjectCreate( txtEXITmarker , OBJ_TEXT , 0 , Time[0] , lowestLow_HTF_3bars );
-                      ObjectSetText( txtEXITmarker , "-" ,9 , "Consolas" , clrLawnGreen );                      
+                      ObjectSetText( txtEXITmarker , "-" ,9 , "Consolas" , clrLawnGreen );
                     }
                     else if(  _orderType==OP_SELL  )
                     {
                       string  txtEXITmarker = "EXITSELLTRAIL_ " + TimeToStr(Time[0] , TIME_DATE|TIME_MINUTES ) ;
                       ObjectCreate( txtEXITmarker , OBJ_TEXT , 0 , Time[0] , highestHigh_HTF_3bars );
-                      ObjectSetText( txtEXITmarker , "-" ,9 , "Consolas" , clrLawnGreen );                                          
+                      ObjectSetText( txtEXITmarker , "-" ,9 , "Consolas" , clrLawnGreen );
                     }
-                    
 
-                    
-                    
+
+
+
             }
-            
+
       }   // End of  if( res == true
           //              && ( _orderType==OP_BUY || _orderType==OP_SELL )
           //              &&  OrderCloseTime() == 0 )
-      
-      
+
+
     } // End of if( IsFirstTick_LTF && Strategy_Trend == STRATEGY_MEDIUMTREND_WEEKLY_LARGE_RANGE )
 
 
 
 
-      
+
     /*-----------------------------------------------------------------------------------*/
     /****** EXECUTION - EXIT BUY - STRATEGY_MEDIUMTREND_WEEKLY_LARGE_RANGE ******/
     /*-----------------------------------------------------------------------------------*/
@@ -4982,7 +5000,7 @@ void OnTick()
         //*****************//
           Print(
 
-            "[OnTick] ======== EXIT BUY MEDIUM TREND ===== " 
+            "[OnTick] ======== EXIT BUY MEDIUM TREND ===== "
              //,
              //"MACDH TTF(18,36,18)[1]: "  , DoubleToString( macd_TTF_exit_hist_1 , 5) , " / " ,
              //"MACDH TTF(18,36,18)[2]: "  , DoubleToString( macd_TTF_exit_hist_X , 5)
@@ -5030,7 +5048,7 @@ void OnTick()
         //*****************//
           Print(
 
-            "[OnTick] ======== EXIT SELL MEDIUM TREND ===== " 
+            "[OnTick] ======== EXIT SELL MEDIUM TREND ===== "
             //,
             // "MACDH TTF(18,36,18)[1]: "  , DoubleToString( macd_TTF_exit_hist_1 , 5) , " / " ,
             // "MACDH TTF(18,36,18)[2]: "  , DoubleToString( macd_TTF_exit_hist_X , 5)
@@ -5088,8 +5106,8 @@ void OnTick()
 
 
 
-        
-        
+
+
 
 
     /*/////////////////////////////////////////////////////////////////////////////////////////////*/
@@ -5175,7 +5193,7 @@ void OnTick()
                       );
 
 
-                    // Cross Down test 
+                    // Cross Down test
                     if( rsi_MTF_fast_1 > 60.0 )
                       {
 
@@ -5272,7 +5290,7 @@ void OnTick()
 
     //-------------------------
     //  DEBUGGING_FOR_VPS
-    //-------------------------        
+    //-------------------------
     Print("[OnTick] >> HTF_SetupType_1_LONG: ", BoolToStr( HTF_SetupType_1_LONG ) );
     Print("[OnTick] >> HTF_SetupType_2_LONG: ", BoolToStr( HTF_SetupType_2_LONG ) );
 
@@ -5342,18 +5360,18 @@ void OnTick()
     // Bollinger band, hence not oversold in technical manner.
     // This rule allows window of "oversold" still valid
 
-    
-    
+
+
 
 
     //-------------------------
     //  DEBUGGING_FOR_VPS
-    //-------------------------        
+    //-------------------------
     Print("[OnTick] >> MTF_SetupType_1_LONG: ", BoolToStr( MTF_SetupType_1_LONG ) );
-    
 
-    
-    
+
+
+
 
     // **** MTF SETUP FOR SELLING ***
     //------------------------------------------------------------------------------------
@@ -5478,35 +5496,35 @@ void OnTick()
                 triggerBuy = true ;
                 EntrySignalCountBuy++ ;
 
-                
-                
-                
-                
+
+
+
+
 
                 //-------------------------
                 //  DEBUGGING_FOR_VPS
-                //-------------------------        
+                //-------------------------
                 // Print("[OnTick] >>> triggerBuy: ", BoolToStr( triggerBuy ) );
-                
-                
 
-                // Draw Up arrow
-                DrawArrowUp("Up"+Bars , Low[1]-10*Point , clrDarkGreen );
+
+
+                // Draw Up arrow        Low[1] - 40.0 * Point
+                DrawArrowUp("Up"+Bars , Low[1] - 60.0 * Point , clrRed );
 
                   Print("");    //-- allow one row above
                   Print("[OnTick] > [DrawArrowUp] " ,
                         "*** TRIGGER BUY ****" , " Entry Signal Buy: #" ,
                         EntrySignalCountBuy
                         );
-                        
+
                   Print("[OnTick] > [DrawArrowUp]" ,
                         " Bid: " , MarketInfo(Symbol(),MODE_BID) , " / " , DoubleToStr(Bid , 5) ,
                         " Ask: " , MarketInfo(Symbol(),MODE_ASK) , " / " , DoubleToStr(Ask , 5) ,
-                        " Spread: " , MarketInfo(Symbol(),MODE_SPREAD) ,                        
+                        " Spread: " , MarketInfo(Symbol(),MODE_SPREAD) ,
                         " Spread Pips: " ,  DoubleToStr( (Ask-Bid)/(Point * PointToPrice) , 2) ,
                         " Datetime: " , TimeToStr( Time[0] , TIME_DATE|TIME_MINUTES )
-                        );                          
-                        
+                        );
+
                   if( HTF_SetupType_1_LONG )
                     Print("[OnTick] > [DrawArrowUp] *** Setup is due to HTF_SetupType_1_LONG ***");
                   if( HTF_SetupType_2_LONG )
@@ -5666,22 +5684,22 @@ void OnTick()
 
 
                 // Draw Dn arrow
-                DrawArrowDown("Dn"+Bars , High[1]+10*Point , clrDarkGreen );
+                DrawArrowDown("Dn"+Bars , High[1] + 60.0 * Point , clrRed );
 
                   Print("");    //-- allow one row above
                   Print("[OnTick] > [DrawArrowDown] " ,
                         "*** TRIGGER SELL ****" , " Entry Signal Sell: #" ,
                         EntrySignalCountSell
                         );
-                        
+
                   Print("[OnTick] > [DrawArrowDown]" ,
                         " Bid: " , MarketInfo(Symbol(),MODE_BID) , " / " , DoubleToStr(Bid , 5) ,
                         " Ask: " , MarketInfo(Symbol(),MODE_ASK) , " / " , DoubleToStr(Ask , 5) ,
-                        " Spread: " , MarketInfo(Symbol(),MODE_SPREAD) ,                        
-                        " Spread Pips: " ,  DoubleToStr( (Ask-Bid)/(Point * PointToPrice) , 2) , 
+                        " Spread: " , MarketInfo(Symbol(),MODE_SPREAD) ,
+                        " Spread Pips: " ,  DoubleToStr( (Ask-Bid)/(Point * PointToPrice) , 2) ,
                         " Datetime: " , TimeToStr( Time[0] , TIME_DATE|TIME_MINUTES )
-                        );                          
-                  
+                        );
+
                 if( HTF_SetupType_1_SHORT )
                   Print("[OnTick] > [DrawArrowDown] *** Setup is due to HTF_SetupType_1_SHORT ***");
                 if( HTF_SetupType_2_SHORT )
@@ -5782,20 +5800,20 @@ void OnTick()
   }
   else
   {
-    
-    
+
+
     //-- This is to debug why signal issues, but no trade executed
-    
+
     if (triggerBuy || triggerSell)
     {
-      Print("[OnTick] > Trigger BUY or Trigger SELL issues, but," , 
-            " NO CALL into Execute_Entry_Buy_PMultiple" , 
+      Print("[OnTick] > Trigger BUY or Trigger SELL issues, but," ,
+            " NO CALL into Execute_Entry_Buy_PMultiple" ,
             " NOR CALL into Execute_Entry_Sell_PMultiple"
             );
-      Print("[OnTick] > Trigger BUY or Trigger SELL issues" , 
+      Print("[OnTick] > Trigger BUY or Trigger SELL issues" ,
             " (CalculateCurrentOrders( Symbol() ) < MaxPositions): " ,  BoolToStr(CalculateCurrentOrders( Symbol() ) < MaxPositions) ,
             " (!ExclZone_In): " , BoolToStr(EntrySignalCountSell <= EntrySignalCountThreshold) ,
-            " TradeMode: " , IntegerToString(TradeMode) , 
+            " TradeMode: " , IntegerToString(TradeMode) ,
             " (EntrySignalCountSell <= EntrySignalCountThreshold): " , BoolToStr(EntrySignalCountSell <= EntrySignalCountThreshold)
             );
     }
